@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap - SuperStep KDS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .top-bar {
+            background-color: #000;
+            color: #fff;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        .logo-text {
+            color: #000;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: -1px;
+        }
+
+        .logo-red { color: #e30613; }
+
+        .login-section {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .badge-custom {
+            background-color: #e30613;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: normal;
+            font-size: 12px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        .btn-black {
+            background-color: #000;
+            color: #fff;
+            width: 100%;
+            padding: 12px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-black:hover {
+            background-color: #333;
+            transform: translateY(-2px);
+        }
+
+        .info-card {
+            background-color: #f9f9f9;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        /* ABOUT FOTOĞRAF */
+        .about-photo {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ÜST BAR -->
+    <div class="top-bar text-center">
+        SuperStep İzmir Yönetim Paneli – Tüm şubeleri tek ekrandan yönetin!
+    </div>
+
+    <!-- HEADER -->
+    <div class="container py-4 d-flex justify-content-between align-items-center border-bottom">
+        <div class="logo-text">Super<span class="logo-red">Step</span></div>
+
+        <div class="d-none d-md-block">
+            <a href="#" class="text-dark text-decoration-none me-3"
+               data-bs-toggle="modal" data-bs-target="#aboutModal">
+                ABOUT US
+            </a>
+        </div>
+    </div>
+
+
+    <!-- LOGIN -->
+    <div class="container login-section">
+        <div class="row w-100 align-items-center">
+
+            <!-- FORM -->
+            <div class="col-md-5 offset-md-1 mb-5 mb-md-0">
+
+                <div class="text-center mb-4">
+                    <span class="badge-custom mb-3 d-inline-block">🔒 ADMIN PANELİ</span>
+                    <h2 class="fw-bold mb-2">SuperStep İzmir Bölgesi <br> Yönetim Paneline Hoş Geldiniz</h2>
+                    <p class="text-muted">Yönetici Girişi</p>
+                </div>
+
+                <% if (hata) { %>
+                    <div class="alert alert-danger text-center p-2"><%= hata %></div>
+                <% } %>
+
+                <form action="/login" method="POST">
+                    <input type="email" name="email" class="form-control" placeholder="E-posta" required>
+                    <input type="password" name="sifre" class="form-control" placeholder="Şifre" required>
+                    <button type="submit" class="btn-black">Devam Et</button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        KVKK süreçleri için 
+                        <a href="#" class="text-dark" data-bs-toggle="modal" data-bs-target="#kvkkModal">
+                            Aydınlatma Metni
+                        </a>'ni inceleyebilirsiniz.
+                    </small>
+                </div>
+            </div>
+
+
+            <!-- SAĞ TARAFTA BİLGİ KARTI -->
+            <div class="col-md-5 offset-md-1">
+                <div class="info-card">
+                    <h4 class="fw-bold mb-3">Neden Bu Sistem?</h4>
+                    <p class="text-muted mb-4" style="font-size:14px; line-height:1.6;">
+                        İzmir’deki tüm SuperStep mağazalarının satış performansını, stok 
+                        verimliliğini ve müşteri segmentlerini tek merkezden analiz etmek için geliştirilmiş 
+                        kurumsal bir Karar Destek Platformudur.
+                    </p>
+
+                    <div class="row g-3">
+                        <div class="col-6"><div class="p-2 bg-white rounded shadow-sm">📊 Satış Analitiği</div></div>
+                        <div class="col-6"><div class="p-2 bg-white rounded shadow-sm">🏬 Şube Karşılaştırma</div></div>
+                        <div class="col-6"><div class="p-2 bg-white rounded shadow-sm">🧩 Segment Modeli</div></div>
+                        <div class="col-6"><div class="p-2 bg-white rounded shadow-sm">🏷️ Kampanya Etkisi</div></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <!-- KVKK MODAL -->
+    <div class="modal fade" id="kvkkModal">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow p-4">
+          <h5 class="fw-bold mb-3">Aydınlatma Metni</h5>
+          <p style="font-size:14px; line-height:1.7;">
+           SuperStep İzmir Yönetim Paneli kapsamında işlenen kişisel verileriniz, 6698 sayılı Kişisel Verilerin Korunması Kanunu uyarınca; sistem güvenliğinin sağlanması, yöneticilerin şube satış performansını analiz edebilmesi, operasyonel süreçlerin yürütülmesi, erişim yetkilerinin doğrulanması ve iç denetim faaliyetlerinin desteklenmesi amaçlarıyla işlenmektedir. Bu kapsamda yalnızca ad-soyad, e-posta adresi, giriş bilgileri ve sistem erişim kayıtları gibi temel veriler toplanmakta olup müşteri verileri analitik amaçlarla anonimleştirilmiş biçimde kullanılmaktadır. Kişisel verileriniz; SuperStep İzmir Bölge Müdürlüğü, yetkili yönetici birimleri ve bilgi işlem ekipleri dışında üçüncü kişilerle paylaşılmamakta, yurt dışına aktarılmamaktadır. Verileriniz; meşru menfaat, sözleşmenin ifası ve sistem işletimi gereklilikleri doğrultusunda, otomatik ve yarı otomatik yollarla toplanmakta ve güvenli şekilde saklanmaktadır. KVKK’nın 11. maddesi kapsamında kişisel verilerinize ilişkin öğrenme, düzeltme, silme, işlenme amacını sorgulama ve hak ihlali hâlinde talepte bulunma haklarına sahip olup ilgili başvurularınızı SuperStep İzmir Bölge Müdürlüğü Bilgi Güvenliği Birimi’ne iletebilirsiniz.
+          </p>
+          <div class="text-end">
+            <button class="btn btn-dark" data-bs-dismiss="modal">Kapat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- ABOUT US MODAL -->
+    <div class="modal fade" id="aboutModal">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow p-4">
+
+          <div class="text-center mb-3">
+              <img src="/images/rabia.png" class="about-photo mb-3">
+              <h4 class="fw-bold mb-0">Rabia Özcan</h4>
+              <p class="text-muted mt-1" style="font-size:13px;">
+                Proje Sahibi • Yönetim Bilişim Sistemleri
+              </p>
+          </div>
+
+          <h5 class="fw-bold">SuperStep İzmir Karar Destek Paneli</h5>
+          <p class="text-muted" style="font-size:14px; line-height:1.7;">
+              SuperStep İzmir Bölgesi için geliştirdiğimiz bu platform, perakende yönetimini geleneksel yöntemlerden çıkarıp veriye dayalı stratejik bir modele dönüştürmeyi amaçlayan yeni nesil bir Karar Destek Sistemidir (KDS).
+
+Amacımız sadece satışları raporlamak değil; geçmiş verilerden anlamlı içgörüler çıkararak geleceği öngörmektir. Gelişmiş stok optimizasyonu algoritmaları ve yapay zeka destekli talep tahminleme modellerimizle, "Doğru Ürün, Doğru Zaman, Doğru Mağaza" prensibini hayata geçiriyoruz. Bölge yöneticilerine sunduğumuz bu dijital asistan sayesinde, stok maliyetlerini düşürürken müşteri memnuniyetini ve şube karlılığını maksimize etmeyi hedefliyoruz.
+
+Verinin gücüne inanıyor, SuperStep'in dinamik yapısını teknolojiyle güçlendiriyoruz.
+          </p>
+
+          <p class="text-muted" style="font-size:14px; line-height:1.7;">
+             
+          </p>
+
+          <p class="text-muted" style="font-size:14px; line-height:1.7;">
+              Sistem, Dokuz Eylül Üniversitesi Yönetim Bilişim Sistemleri disiplini ve Karar Destek Sistemleri dersi kapsamında geliştirilmiş olup, kurumsal kullanım için optimize edilmiş modern bir yönetim paneli deneyimi sunar.
+          </p>
+
+          <div class="text-end">
+            <button class="btn btn-dark" data-bs-dismiss="modal">Kapat</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+

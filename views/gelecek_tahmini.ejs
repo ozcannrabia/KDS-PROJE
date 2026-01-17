@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Stratejik Gelecek Tahmini - SuperStep KDS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { --sidebar-bg: #5e0000ef; --bg-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); }
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); min-height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; }
+        .sidebar-logo { height: 72px; padding: 0 20px; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-logo-img { width: 100%; max-width: 400px; height: auto; }
+        .sidebar-menu { list-style: none; padding: 0; }
+        .menu-item a { display: flex; align-items: center; padding: 12px 24px; color: #e5e5e5; text-decoration: none; font-size: 14px; transition:0.2s; }
+        .menu-item a:hover, .menu-item a.active { background: rgba(255,255,255,0.1); color: #fff; border-left: 4px solid #ff0000; }
+        .menu-item i { width: 24px; }
+        .main-content { margin-left: 260px; padding: 30px; }
+
+        /* HEADER CARD */
+        .header-card {
+            background: linear-gradient(135deg, #1e293b, #530404ff);
+            color: white;
+            border-radius: 16px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .score-circle {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            border: 8px solid rgba(255,255,255,0.2);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-size: 36px; font-weight: 800;
+            position: relative;
+        }
+        .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; font-weight: 400; }
+        
+        .white-card { background: white; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        
+        /* TABLE STYLES */
+        .table-future thead th { background: #f1f5f9; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; border: none; padding: 12px; }
+        .table-future td { padding: 16px 12px; vertical-align: middle; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+        .trend-up { color: #10b981; background: #ecfdf5; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+        .trend-down { color: #ef4444; background: #fef2f2; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo"><img src="/images/superstep_logo.png" class="sidebar-logo-img"></div>
+        <ul class="sidebar-menu">
+            <li class="menu-item"><a href="/dashboard"><i class="fa-solid fa-house"></i> Genel Dashboard</a></li>
+            <li class="menu-item"><a href="/sube-performansi"><i class="fa-solid fa-store"></i> Şube Performansı</a></li>
+            <li class="menu-item"><a href="/musteri-segmentleri"><i class="fa-solid fa-users"></i> Müşteri Segmentleri</a></li>
+            <li class="menu-item"><a href="/urun-analizi"><i class="fa-solid fa-box-open"></i> Ürün ve Stok Analizi</a></li>
+            <li class="menu-item"><a href="/kampanya-simulasyonu"><i class="fa-solid fa-wand-magic-sparkles"></i> Kampanya Simülasyonu</a></li>
+            <li class="menu-item"><a href="/satis-kayitlari"><i class="fa-solid fa-file-invoice"></i> Satış Kayıtları</a></li>
+            <li class="menu-item"><a href="/gelecek-tahmini" class="active"><i class="fa-solid fa-arrow-trend-up"></i> Gelecek Tahmini</a></li>
+            <li class="menu-item"><a href="/kullanicilar"><i class="fa-solid fa-user-gear"></i> Kullanıcı Yönetimi</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        
+        <div class="header-card mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="text-uppercase text-white-50 mb-2" style="font-size: 12px; letter-spacing: 1px;">KDS FİNAL RAPORU</h5>
+                    <h1 class="fw-bold mb-3">2026 Stratejik Vizyon</h1>
+                    <p class="mb-4 text-white-50" style="max-width: 600px;">
+                        Sistemin tüm modüllerinden (Stok, Müşteri, Satış) toplanan verilerle oluşturulmuş hibrit gelecek projeksiyonudur.
+                        Bu ekran, şirketin genel gidişatını tek bakışta özetler.
+                    </p>
+                    
+                    <div class="d-flex gap-4">
+                        <div>
+                            <div class="h3 fw-bold mb-0 text-white"><%= Number(meta.toplam_tahmin).toLocaleString('tr-TR', {notation: "compact"}) %>₺</div>
+                            <small class="text-white-50">Beklenen Ciro (<%= meta.sure %> Ay)</small>
+                        </div>
+                        <div class="border-start border-white border-opacity-10 ps-4">
+                            <div class="h3 fw-bold mb-0 text-warning"><%= meta.risk_faktorleri.stok %></div>
+                            <small class="text-white-50">Kritik Stok Kalemi</small>
+                        </div>
+                        <div class="border-start border-white border-opacity-10 ps-4">
+                            <div class="h3 fw-bold mb-0 <%= meta.risk_faktorleri.churn ? 'text-danger' : 'text-success' %>">
+                                <%= meta.risk_faktorleri.churn ? 'Yüksek' : 'Düşük' %>
+                            </div>
+                            <small class="text-white-50">Müşteri Kayıp Riski</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 text-center d-flex justify-content-center">
+                    <div class="score-circle" style="border-color: <%= meta.skor > 80 ? '#10b981' : (meta.skor > 50 ? '#f59e0b' : '#ef4444') %>;">
+                        <%= meta.skor %>
+                        <span class="score-label">Sağlık Puanı</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="white-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h5 class="fw-bold m-0 text-dark">Senaryo Bazlı Büyüme Tahmini</h5>
+                            <small class="text-muted">Kötümser (Riskli), Baz (Mevcut) ve İyimser (Müdahale) senaryolar.</small>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <a href="/gelecek-tahmini?sure=6" class="btn btn-sm btn-outline-dark <%= meta.sure==6?'active':'' %>">6 Ay</a>
+                            <a href="/gelecek-tahmini?sure=12" class="btn btn-sm btn-outline-dark <%= meta.sure==12?'active':'' %>">12 Ay</a>
+                        </div>
+                    </div>
+                    
+                    <div style="height: 350px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="white-card h-100">
+                    <h5 class="fw-bold mb-1 text-dark">Geleceğin Liderleri</h5>
+                    <p class="text-muted small mb-4">Şubelerin tahmin edilen büyüme potansiyeli.</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-future table-borderless">
+                            <thead>
+                                <tr>
+                                    <th>Şube</th>
+                                    <th class="text-end">Tahmin</th>
+                                    <th class="text-end">Potansiyel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% subeler.slice(0, 6).forEach(sube => { %>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark"><%= sube.ad.replace('SuperStep – ', '') %></div>
+                                        </td>
+                                        <td class="text-end text-muted">
+                                            <%= Number(sube.gelecek).toLocaleString('tr-TR', {notation:"compact"}) %>₺
+                                        </td>
+                                        <td class="text-end">
+                                            <% if(parseFloat(sube.degisim) > 0) { %>
+                                                <span class="trend-up"><i class="fa-solid fa-arrow-trend-up me-1"></i><%= sube.degisim %>%</span>
+                                            <% } else { %>
+                                                <span class="trend-down"><i class="fa-solid fa-arrow-trend-down me-1"></i><%= sube.degisim %>%</span>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const gecmis = <%- JSON.stringify(gecmis) %>;
+        const gelecek = <%- JSON.stringify(gelecek) %>;
+
+        const labels = [...gecmis.map(d => d.ay_yil), ...gelecek.map(d => d.ay)];
+        
+        // Veri setlerini hazırla
+        const pastData = gecmis.map(d => d.ciro);
+        const lastVal = pastData[pastData.length - 1];
+
+        const bazData = Array(pastData.length - 1).fill(null);
+        bazData.push(lastVal);
+        gelecek.forEach(d => bazData.push(d.baz));
+
+        const kotuData = Array(pastData.length - 1).fill(null);
+        kotuData.push(lastVal);
+        gelecek.forEach(d => kotuData.push(d.kotu));
+
+        const iyiData = Array(pastData.length - 1).fill(null);
+        iyiData.push(lastVal);
+        gelecek.forEach(d => iyiData.push(d.iyi));
+
+        new Chart(document.getElementById('mainChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Gerçekleşen',
+                        data: pastData,
+                        borderColor: '#334155',
+                        backgroundColor: '#334155',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'İyimser (Fırsat)',
+                        data: iyiData,
+                        borderColor: '#10b981', // Yeşil
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Baz (Mevcut)',
+                        data: bazData,
+                        borderColor: '#f59e0b', // Sarı
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Kötümser (Risk)',
+                        data: kotuData,
+                        borderColor: '#ef4444', // Kırmızı
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: {
+                            target: '+1', // Baz senaryo ile arasını boya
+                            above: 'rgba(90, 4, 4, 0.05)'
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + Number(context.raw).toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0});
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { grid: { color: '#f1f5f9' }, beginAtZero: false },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

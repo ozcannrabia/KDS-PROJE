@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Şube Performansı - SuperStep KDS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root { --sidebar-bg: #5e0000ef; --bg-color: #f3f4f6; --sidebar-active: #bc0b0bff;
+            --accent-color: #ff0000ff; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); }
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); min-height: 100vh; position: fixed; top: 0; left: 0; padding-top: 20px; z-index: 1000; }
+        .sidebar-logo {
+            height: 72px;              /* 👈 sidebar üst alanı net */
+            padding: 0 20px;           /* SADECE sağ-sol */
+            margin: 0;
+            display: flex;
+            align-items: center;       /* dikey tam ortalama */
+            justify-content: flex-start;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+       .sidebar-logo-img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            display: block;
+            margin: 0;           /* 👈 alt boşluk biter */
+        }
+
+        .sidebar-menu { list-style: none; padding: 0; }
+        .menu-header { font-size: 11px; text-transform: uppercase; color: #b77a7aff; padding: 10px 24px; font-weight: 600; margin-top: 10px; }
+        .menu-item a { display: flex; align-items: center; padding: 12px 24px; color: #e5e5e5ff;; text-decoration: none; font-size: 14px; transition: 0.2s; border-left: 3px solid transparent; }
+        .menu-item a:hover, .menu-item a.active {
+            background-color: var(--sidebar-active);
+            color: white;
+            border-left-color: var(--accent-color);
+        }
+        .menu-item i { width: 24px; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .white-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px #ff0000ff; margin-bottom: 24px; border: 1px solid #e5e7eb; }
+        .card-label { color: #6b7280; font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+        .card-value { font-size: 28px; font-weight: 700; color: #111827; }
+        .card-sub { font-size: 12px; color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .table-custom th { background-color: #f9fafb; font-size: 12px; text-transform: uppercase; color: #6b7280; font-weight: 600; border-bottom: 1px solid #e5e7eb; padding: 12px 16px; }
+        .table-custom td { padding: 16px; vertical-align: middle; border-bottom: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+        .badge-kds { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .bg-high { background-color: #d1fae5; color: #065f46; }
+        .bg-mid { background-color: #fee2e2; color: #991b1b; }
+        
+        /* Grafik Başlıkları İçin */
+        .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .chart-title { font-weight: 700; color: #374151; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="/images/superstep_logo.png" class="sidebar-logo-img">
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-header">GENEL</li>
+            <li class="menu-item">
+                <a href="/dashboard"><i class="fa-solid fa-house"></i> Genel Dashboard</a>
+            </li>
+            <li class="menu-item">
+                <a href="/sube-performansi"><i class="fa-solid fa-store"></i> Şube Performansı</a>
+            </li>
+            <li class="menu-item">
+                <a href="/musteri-segmentleri"><i class="fa-solid fa-users"></i> Müşteri Segmentleri</a>
+            </li>
+            <li class="menu-item">
+                <a href="/urun-analizi">
+                    <i class="fa-solid fa-box-open"></i> Ürün ve Stok Analizi
+                </a>
+            </li>
+            
+            <li class="menu-header">YÖNETİM</li>
+            <li class="menu-item">
+                <a href="/kampanya-simulasyonu"><i class="fa-solid fa-wand-magic-sparkles"></i> Kampanya Simülasyonu</a>
+            </li>
+            <li class="menu-item">
+                <a href="/satis-kayitlari"><i class="fa-solid fa-file-invoice"></i> Satış Kayıtları</a>
+            </li>
+            <li class="menu-item">
+                <a href="/gelecek-tahmini"><i class="fa-solid fa-arrow-trend-up"></i> Gelecek Tahmini</a>
+            </li>
+
+            <li class="menu-header">AYARLAR</li>
+            <li class="menu-item">
+               <a href="/kullanicilar"><i class="fa-solid fa-user-gear"></i> Kullanıcı Yönetimi</a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Şube Performansı</h3>
+                <p class="text-muted m-0" style="font-size: 14px;">Tüm şubelerin ciro, kar ve metrekare verimliliği</p>
+            </div>
+            
+            <form action="/sube-performansi" method="GET" class="d-flex gap-2 bg-white p-2 rounded shadow-sm border">
+                <select name="sube" class="form-select form-select-sm border-0 bg-light" style="width: 160px; font-weight:600;">
+                    <option value="hepsi">Tüm Şubeler</option>
+                    <% subeListesi.forEach(s => { %>
+                        <option value="<%= s.sube_id %>" <%= filtre.secilenSube == s.sube_id ? 'selected' : '' %>>
+                            <%= s.sube_adi.replace('SuperStep – ', '') %>
+                        </option>
+                    <% }) %>
+                </select>
+                
+                <select name="donem" class="form-select form-select-sm border-0 bg-light" style="width: 140px; font-weight:600;">
+                    <option value="180" <%= filtre.donem == 180 ? 'selected' : '' %>>Son 6 Ay</option>
+                    <option value="365" <%= filtre.donem == 365 ? 'selected' : '' %>>Son 1 Yıl</option>
+                    <option value="3650" <%= filtre.donem == 3650 ? 'selected' : '' %>>Tüm Zamanlar</option>
+                </select>
+                
+                <button type="submit" class="btn btn-sm btn-dark px-3">Uygula</button>
+            </form>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="white-card h-100">
+                    <div class="card-label">TOPLAM CİRO</div>
+                    <div class="card-value"><%= ozet.ciro.toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}) %></div>
+                    <div class="card-sub"><i class="fa-solid fa-arrow-up"></i> Seçilen dönem toplamı</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="white-card h-100">
+                    <div class="card-label">TOPLAM KÂR</div>
+                    <div class="card-value"><%= ozet.kar.toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}) %></div>
+                    <div class="card-sub text-primary"><i class="fa-solid fa-percent"></i> Marj: %<%= ozet.ciro > 0 ? ((ozet.kar / ozet.ciro)*100).toFixed(1) : '0' %></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="white-card h-100">
+                    <div class="card-label">ORTALAMA M² BAŞINA CİRO</div>
+                    <div class="card-value"><%= ozet.m2_verim.toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}) %></div>
+                    <div class="card-sub text-muted" style="font-weight:400;">Verimlilik Skoru</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="white-card" style="border-left: 5px solid #6366f1;">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fa-solid fa-brain text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold m-0 text-dark">Yapay Zeka Destekli Karar Önerileri</h5>
+                            <p class="text-muted small m-0">
+                                Sistem, şube verilerini <strong>Silojistik Mantık (Rule-Based Logic)</strong> ile analiz ederek aşağıdaki aksiyonları öneriyor.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <% if (typeof oneriler !== 'undefined' && oneriler && oneriler.length > 0) { %>
+                            <% oneriler.forEach(oneri => { %>
+                                <div class="col-md-4">
+                                    <div class="alert alert-<%= oneri.tip %> d-flex align-items-start border-0 shadow-sm h-100" style="background-color: var(--bs-<%= oneri.tip %>-bg-subtle);">
+                                        <i class="fa-solid <%= oneri.icon %> fs-4 me-3 mt-1 text-<%= oneri.tip %>"></i>
+                                        <div>
+                                            <h6 class="fw-bold text-<%= oneri.tip %> mb-1"><%= oneri.baslik %></h6>
+                                            <p class="mb-0 small text-dark opacity-75"><%= oneri.mesaj %></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="col-12">
+                                <div class="alert alert-light border text-center text-muted">
+                                    <i class="fa-solid fa-check-circle me-2"></i>
+                                    Şu an için herhangi bir risk veya acil aksiyon durumu tespit edilmedi. Tüm şubeler standart sapma aralığında performans gösteriyor.
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="white-card mb-4">
+            <div class="chart-header">
+                <div class="chart-title text-primary">
+                    <i class="fa-solid fa-chart-line"></i> 
+                    Ciro Projeksiyonu (Geçmiş + 6 Ay Tahmin)
+                </div>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="white-card h-100">
+                    <div class="chart-header">
+                        <div class="chart-title text-success">
+                            <i class="fa-solid fa-percent"></i> Kârlılık Trend Analizi
+                        </div>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="marginChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="white-card h-100">
+                    <div class="chart-header">
+                        <div class="chart-title text-warning">
+                            <i class="fa-solid fa-bullseye"></i> Hedef vs Gerçekleşen
+                        </div>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="targetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="white-card border-top border-4 border-primary">
+            <div class="p-2 mb-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold m-0"><i class="fa-solid fa-users-gear me-2 text-primary"></i>Stratejik İK Planlama & Simülasyon</h5>
+                <button onclick="excelIndir()" class="btn btn-sm btn-success text-white">
+                    <i class="fa-solid fa-file-excel me-1"></i> Excel İndir
+                </button>
+            </div>
+
+            <div class="accordion" id="ikAccordion">
+                <% if(typeof tabloVerisi !== 'undefined') { %>
+                    <% tabloVerisi.forEach((row, index) => { %>
+                        <div class="accordion-item border-0 mb-3 shadow-sm rounded overflow-hidden">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>">
+                                    <div class="d-flex align-items-center justify-content-between w-100 me-3">
+                                        <span class="fw-bold"><%= row.sube_adi ? row.sube_adi.replace('SuperStep – ', '') : row.branch_name %></span>
+                                        <div class="d-flex gap-3 small">
+                                            <span class="text-muted">Mevcut Kadro: <strong><%= row.personelSayisi %></strong></span>
+                                            <span class="text-muted">Verimlilik: <strong><%= row.personelVerim.toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}) %></strong></span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse<%= index %>" class="accordion-collapse collapse" data-bs-parent="#ikAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-7">
+                                            <h6 class="text-primary small fw-bold text-uppercase mb-2">
+                                                <i class="fa-solid fa-calendar-days me-1"></i> Senaryo A: 6 Aylık İşgücü & Risk Analizi
+                                            </h6>
+                                            <table class="table table-sm table-bordered text-center small align-middle">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Dönem</th>
+                                                        <th>Tahmini Ciro</th>
+                                                        <th>Mevcut</th>
+                                                        <th>Gereken</th>
+                                                        <th>Stratejik Karar</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% row.simulasyon.forEach(sim => { 
+                                                        let rowClass = '';
+                                                        if(sim.durum === 'danger') rowClass = 'table-danger'; // Personel Eksik
+                                                        if(sim.durum === 'warning') rowClass = 'table-warning'; // İstifa Riski
+                                                        if(sim.durum === 'info') rowClass = 'table-info'; // Fazla Kadro
+                                                    %>
+                                                        <tr class="<%= rowClass %>">
+                                                            <td class="fw-bold"><%= sim.ay %></td>
+                                                            <td><%= sim.tahmini_ciro.toLocaleString('tr-TR') %> ₺</td>
+                                                            <td class="text-muted"><%= sim.mevcut %></td>
+                                                            <td class="fw-bold"><%= sim.gereken %></td>
+                                                            <td class="text-start ps-3"><%- sim.aksiyon %></td>
+                                                        </tr>
+                                                    <% }) %>
+                                                </tbody>
+                                            </table>
+                                            <div class="d-flex gap-3 justify-content-end" style="font-size: 10px;">
+                                                <span class="badge bg-danger bg-opacity-25 text-dark border">Yetersiz</span>
+                                                <span class="badge bg-warning bg-opacity-25 text-dark border">Riskli / İstifa</span>
+                                                <span class="badge bg-info bg-opacity-25 text-dark border">Fazla Kadro</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-5">
+                                            <h6 class="text-success small fw-bold text-uppercase mb-2">
+                                                <i class="fa-solid fa-chart-area me-1"></i> Senaryo B: Hedef Artış (+%15) Potansiyeli
+                                            </h6>
+                                            <div class="border rounded p-2 bg-light h-100 d-flex align-items-center">
+                                                <canvas id="chartIK-<%= index %>" style="max-height: 180px;"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="d-none">
+            <table id="subeTablosu">
+                <thead>
+                    <tr><th>Şube</th><th>Ciro</th><th>Kâr</th></tr>
+                </thead>
+                <tbody>
+                    <% if(typeof tabloVerisi !== 'undefined') { %>
+                        <% tabloVerisi.forEach((row) => { %>
+                            <tr>
+                                <td><%= row.sube_adi || row.branch_name %></td>
+                                <td><%= row.ciro %></td>
+                                <td><%= row.kar %></td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // --- DATA HAZIRLIĞI ---
+        // Backend'den gelen verileri JS değişkenlerine aktar (Hata önleyici kontrollerle)
+        const zamanSerisi = <%- JSON.stringify(typeof zamanSerisi !== 'undefined' ? zamanSerisi : []) %>;
+        const gelecekTahmini = <%- JSON.stringify(typeof gelecekTahmini !== 'undefined' ? gelecekTahmini : []) %>;
+        const tabloVerisi = <%- JSON.stringify(typeof tabloVerisi !== 'undefined' ? tabloVerisi : []) %>;
+
+        // 1. FORECAST CHART (ÇİZGİ GRAFİK - Ciro Projeksiyonu)
+        const labelsGecmis = zamanSerisi.map(d => d.ay);
+        const dataGecmis = zamanSerisi.map(d => d.aylik_ciro);
+        
+        const labelsGelecek = gelecekTahmini.map(d => d.ay);
+        const dataGelecek = gelecekTahmini.map(d => d.tahmini_ciro);
+
+        const labelsTotal = [...labelsGecmis, ...labelsGelecek];
+        
+        new Chart(document.getElementById('forecastChart'), {
+            type: 'line',
+            data: {
+                labels: labelsTotal,
+                datasets: [
+                    {
+                        label: 'Gerçekleşen Ciro',
+                        data: [...dataGecmis, ...Array(labelsGelecek.length).fill(null)], 
+                        borderColor: '#2563eb',
+                        backgroundColor: '#2563eb',
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Tahmin Edilen (Forecast)',
+                        data: [...Array(labelsGecmis.length - 1).fill(null), dataGecmis[dataGecmis.length-1], ...dataGelecek],
+                        borderColor: '#f59e0b',
+                        borderDash: [5, 5], 
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f59e0b'
+                    }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
+                scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // 2. KÂR MARJI TRENDİ
+        const margins = zamanSerisi.map(d => (d.aylik_kar / d.aylik_ciro) * 100);
+        new Chart(document.getElementById('marginChart'), {
+            type: 'line',
+            data: {
+                labels: labelsGecmis,
+                datasets: [{
+                    label: 'Kâr Marjı (%)',
+                    data: margins,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // 3. HEDEF vs GERÇEKLEŞEN (Bar Chart)
+        const subeAdlari = tabloVerisi.map(t => t.branch_name ? t.branch_name.replace('SuperStep – ', '') : t.sube_adi);
+        const cirolar = tabloVerisi.map(t => t.ciro);
+        const hedefler = cirolar.map(c => c * 1.15); // Simülasyon Hedef
+
+        new Chart(document.getElementById('targetChart'), {
+            type: 'bar',
+            data: {
+                labels: subeAdlari,
+                datasets: [
+                    { label: 'Gerçekleşen', data: cirolar, backgroundColor: '#6366f1', borderRadius: 4 },
+                    { label: 'Hedeflenen', data: hedefler, backgroundColor: '#e5e7eb', borderRadius: 4 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // 4. İK KÜÇÜK GRAFİKLER (Accordion İçindekiler)
+        tabloVerisi.forEach((row, index) => {
+            const canvas = document.getElementById('chartIK-' + index);
+            if(canvas) {
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: row.simulasyon.map(s=>s.ay),
+                        datasets: [
+                            { label: 'Normal', data: row.simulasyon.map(s=>s.tahmini_ciro), backgroundColor: '#94a3b8' },
+                            { label: '+%10 Hedef', data: row.simulasyon.map(s=>s.hedefli_ciro), backgroundColor: '#10b981' }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}} }
+                });
+            }
+        });
+
+        // --- EXCEL İNDİRME FONKSİYONU ---
+        function excelIndir() {
+            var tablo = document.getElementById("subeTablosu");
+            var wb = XLSX.utils.table_to_book(tablo, {sheet: "Şube Performans Raporu"});
+            var tarih = new Date().toLocaleDateString('tr-TR').replace(/\./g, '_');
+            var dosyaAdi = `Sube_Performans_Raporu_${tarih}.xlsx`;
+            XLSX.writeFile(wb, dosyaAdi);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Müşteri Segmentleri - SuperStep KDS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+         :root { --sidebar-bg: #5e0000ef; --bg-color: #f3f4f6; --sidebar-active: #bc0b0bff;
+            --accent-color: #ff0000ff; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); }
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); min-height: 100vh; position: fixed; top: 0; left: 0; padding-top: 20px; z-index: 1000; }
+        .sidebar-logo { height: 72px; padding: 0 20px; margin: 0; display: flex; align-items: center; justify-content: flex-start; border-bottom: 1px solid rgba(255,255,255,0.15); }
+        .sidebar-logo-img { width: 100%; max-width: 400px; height: auto; display: block; margin: 0; }
+        .sidebar-menu { list-style: none; padding: 0; }
+        .menu-header { font-size: 11px; text-transform: uppercase; color: #b77a7aff; padding: 10px 24px; font-weight: 600; margin-top: 10px; }
+        .menu-item a { display: flex; align-items: center; padding: 12px 24px; color: #e5e5e5ff;; text-decoration: none; font-size: 14px; transition: 0.2s; border-left: 3px solid transparent; }
+        .menu-item a:hover, .menu-item a.active { background-color: var(--sidebar-active); color: white; border-left-color: var(--accent-color); }
+        .menu-item i { width: 24px; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .white-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px #ff0000ff;}
+        .card-title-custom { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: #1f2937; display: flex; justify-content: space-between; align-items: center; }
+        .stat-card { padding: 20px; border-radius: 12px; color: white; position: relative; overflow: hidden; }
+        .bg-gradient-blue { background: linear-gradient(135deg, #ac1400ff, #2563eb); box-shadow: 0 1px 3px #ff0000ff;}
+        .bg-gradient-purple { background: linear-gradient(135deg, #ac1400ff, #7c3aed); box-shadow: 0 1px 3px #ff0000ff;}
+        .stat-val { font-size: 28px; font-weight: 700; }
+        .stat-label { font-size: 13px; opacity: 0.9; }
+        .stat-icon { position: absolute; right: -10px; bottom: -10px; font-size: 80px; opacity: 0.2; transform: rotate(-15deg); }
+        /* Slider */
+        input[type=range] { accent-color: #2563eb; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            
+            <img src="/images/superstep_logo.png" class="sidebar-logo-img">
+        </div>
+    
+       <ul class="sidebar-menu">
+            <li class="menu-header">GENEL</li>
+            <li class="menu-item"><a href="/dashboard"><i class="fa-solid fa-house"></i> Genel Dashboard</a></li>
+            <li class="menu-item"><a href="/sube-performansi"><i class="fa-solid fa-store"></i> Şube Performansı</a></li>
+            <li class="menu-item"><a href="/musteri-segmentleri" class="active"><i class="fa-solid fa-users"></i> Müşteri Segmentleri</a></li>
+            <li class="menu-item"><a href="/urun-analizi"><i class="fa-solid fa-box-open"></i> Ürün ve Stok Analizi</a></li>
+            <li class="menu-header">YÖNETİM</li>
+            <li class="menu-item"><a href="/kampanya-simulasyonu"><i class="fa-solid fa-wand-magic-sparkles"></i> Kampanya Simülasyonu</a></li>
+            <li class="menu-item"><a href="/satis-kayitlari"><i class="fa-solid fa-file-invoice"></i> Satış Kayıtları</a></li>
+            <li class="menu-item"><a href="/gelecek-tahmini"><i class="fa-solid fa-arrow-trend-up"></i> Gelecek Tahmini</a></li>
+            <li class="menu-header">AYARLAR</li>
+            <li class="menu-item"><a href="/kullanicilar"><i class="fa-solid fa-user-gear"></i> Kullanıcı Yönetimi</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Müşteri Segmentasyon Analizi</h3>
+                <p class="text-muted m-0" style="font-size: 14px;">Müşteri sadakati, sepet ortalamaları ve değer analizi</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#filtreModal">
+                    <i class="fa-solid fa-filter"></i> Filtrele
+                    <% if(secilenSubeID !== 'hepsi') { %> <span class="badge bg-secondary ms-1">Aktif</span> <% } %>
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="stat-card bg-gradient-blue">
+                    <div class="stat-label">TOPLAM MÜŞTERİ ETKİLEŞİMİ</div>
+                    <div class="stat-val"><%= kpi.toplam_musteri.toLocaleString() %></div>
+                    <div class="mt-2" style="font-size:12px; opacity:0.8;">
+                        <i class="fa-solid fa-check-circle"></i> Veriler işlem bazlı analiz edilmiştir.
+                    </div>
+                    <i class="fa-solid fa-users stat-icon"></i>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card bg-gradient-purple">
+                    <div class="stat-label">SADIK MÜŞTERİ ORANI</div>
+                    <div class="stat-val">%<%= kpi.toplam_musteri > 0 ? ((kpi.sadik_oran / kpi.toplam_musteri) * 100).toFixed(1) : 0 %></div>
+                    <div class="progress mt-2" style="height: 6px; background: rgba(255,255,255,0.3);">
+                        <div class="progress-bar bg-white" style="width: <%= kpi.toplam_musteri > 0 ? ((kpi.sadik_oran / kpi.toplam_musteri) * 100) : 0 %>%"></div>
+                    </div>
+                    <i class="fa-solid fa-heart stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="white-card bg-light border-0">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-white p-2 rounded-circle shadow-sm me-3"><i class="fa-solid fa-brain text-primary fs-5"></i></div>
+                        <h6 class="fw-bold m-0 text-dark">KDS Önerileri: Ne Yapmalıyım?</h6>
+                    </div>
+                    <div class="row g-3">
+                        <% if(oneriler && oneriler.length > 0) { %>
+                            <% oneriler.forEach(oneri => { %>
+                                <div class="col-md-4">
+                                    <div class="alert alert-<%= oneri.tip %> border-0 shadow-sm h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fa-solid <%= oneri.icon %> me-2 fs-5"></i>
+                                            <strong class="text-uppercase" style="font-size:12px;"><%= oneri.baslik %></strong>
+                                        </div>
+                                        <p class="small m-0 opacity-75"><%= oneri.mesaj %></p>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="col-12"><div class="alert alert-light border text-center">Şu an için kritik bir risk veya fırsat tespit edilmedi.</div></div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                <div class="white-card">
+                    <div class="card-title-custom">📊 Segment Performans Karnesi</div>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Segment</th>
+                                <th class="text-center">İşlem Hacmi</th>
+                                <th class="text-end">Toplam Ciro</th>
+                                <th class="text-end">Ort. Sepet</th>
+                                <th class="text-end">Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% segmentOzet.forEach(seg => { %>
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold"><%= seg.customer_segment || 'Misafir Müşteri' %></div>
+                                        <small class="text-muted">
+                                            <% if (seg.customer_segment) { %>
+                                                <%= seg.customer_segment.includes('Sadik') || seg.customer_segment.includes('Sadık') ? 'Düzenli Müşteri' : 
+                                                    seg.customer_segment.includes('VIP') ? 'Yüksek Ciro Grubu' : 'Yeni / Potansiyel' %>
+                                            <% } else { %>
+                                                Kayıtsız İşlem
+                                            <% } %>
+                                        </small>
+                                    </td>
+                                    <td class="text-center"><%= seg.islem_sayisi %></td>
+                                    <td class="text-end fw-bold"><%= Number(seg.toplam_ciro).toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}) %></td>
+                                    <td class="text-end"><span class="badge bg-light text-dark border"><%= Number(seg.ortalama_sepet).toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}) %></span></td>
+                                    <td class="text-end">
+                                        <% if(seg.ortalama_sepet > 5000) { %> 
+                                            <i class="fa-solid fa-arrow-trend-up text-success"></i> <span class="text-success fw-bold">Yüksek</span>
+                                        <% } else { %> 
+                                            <i class="fa-solid fa-minus text-warning"></i> Normal 
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="white-card">
+                    <div class="card-title-custom text-primary"><i class="fa-solid fa-chart-line me-2"></i>Gelecek 6 Ay Ciro Tahmini (Segment Bazlı)</div>
+                    <div style="height: 250px;">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                
+                <div class="white-card border-danger border-opacity-25 bg-danger bg-opacity-10">
+                    <div class="card-title-custom text-danger mb-1">⚠️ Kayıp Riski (Churn)</div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="display-6 fw-bold text-dark"><%= churnAnalizi.riskli_sayi %></div>
+                            <small class="text-muted">Riskli Müşteri</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-danger mb-1"><%= churnAnalizi.risk_seviyesi %> Risk</div>
+                            <div class="small text-danger fw-bold"><%= churnAnalizi.kayip_ciro_riski.toLocaleString() %>₺ Riskte</div>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar bg-danger" style="width: 45%"></div>
+                    </div>
+                </div>
+
+                <div class="white-card mt-4 border-success border-opacity-25 bg-success bg-opacity-10">
+                    <div class="card-title-custom text-success mb-1">🚀 Dönüşüm Fırsatı</div>
+                    <p class="small text-muted mb-2">Yeni müşterilerin sadık müşteriye dönüşme potansiyeli.</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-white p-3 rounded-circle text-success shadow-sm"><i class="fa-solid fa-user-plus fs-4"></i></div>
+                        <div>
+                            <h5 class="m-0 fw-bold text-dark">+<%= donusumTahmini.beklenen_donusum %> Kişi</h5>
+                            <small class="text-success fw-bold">Tahmini Ek Ciro: <%= donusumTahmini.potansiyel_ciro.toLocaleString() %>₺</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="white-card mt-4">
+                    <div class="card-title-custom">💰 Ciro Dağılımı</div>
+                    <div style="height: 200px; display:flex; justify-content:center;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="white-card" style="border-top: 5px solid #6366f1;">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 border-end">
+                            <h5 class="fw-bold text-dark m-0"><i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i>Kampanya Simülatörü</h5>
+                            <p class="text-muted small m-0 mt-1">"Eğer sadık müşteri oranını artırırsak ciro ne olur?"</p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold small mb-2 d-flex justify-content-between">
+                                Hedef Sadakat Artışı
+                                <span id="simVal" class="badge bg-primary">+%0</span>
+                            </label>
+                            <input type="range" class="form-range" id="simRange" min="0" max="50" step="5" value="0">
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="text-muted small text-uppercase fw-bold">Tahmini Ekstra Ciro</div>
+                            <div class="display-6 fw-bold text-success" id="simResult">0 ₺</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="modal fade" id="filtreModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Analiz Filtresi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/musteri-segmentleri" method="GET">
+                        <div class="mb-4">
+                            <label class="form-label text-muted small fw-bold">ŞUBE SEÇİMİ</label>
+                            <select name="sube" class="form-select form-select-lg">
+                                <option value="hepsi">Tüm Şubeler (Genel Bakış)</option>
+                                <% tumSubeler.forEach(sube => { %>
+                                    <option value="<%= sube.branch_id %>" <%= secilenSubeID == sube.branch_id ? 'selected' : '' %>>
+                                        superStep – <%= sube.branch_name %>
+                                    </option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Sonuçları Göster</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Backend'den gelen verileri JS değişkenlerine aktar
+        const segmentData = <%- JSON.stringify(segmentOzet) %>;
+        const projeksiyon = <%- JSON.stringify(gelecekProjeksiyonu || []) %>;
+        
+        // Simülasyon için toplam ciroyu al
+        const toplamCiro = segmentData.reduce((acc, curr) => acc + parseFloat(curr.toplam_ciro), 0);
+
+        // --- 1. SİMÜLASYON MANTIĞI ---
+        const simRange = document.getElementById('simRange');
+        const simVal = document.getElementById('simVal');
+        const simResult = document.getElementById('simResult');
+
+        simRange.addEventListener('input', (e) => {
+            const artis = parseInt(e.target.value);
+            simVal.innerText = `+%${artis}`;
+            const ekCiro = toplamCiro * (artis / 100) * 0.5;
+            simResult.innerText = `+${ekCiro.toLocaleString('tr-TR', {maximumFractionDigits: 0})} ₺`;
+        });
+
+        // --- 2. FORECAST CHART (TAHMİN) ---
+        new Chart(document.getElementById('forecastChart'), {
+            type: 'line',
+            data: {
+                labels: projeksiyon.map(p => p.ay),
+                datasets: [
+                    {
+                        label: 'Sadık Müşteri Beklentisi',
+                        data: projeksiyon.map(p => p.sadik_tahmin),
+                        borderColor: '#10b981', 
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true, tension: 0.4
+                    },
+                    {
+                        label: 'Yeni Müşteri Beklentisi',
+                        data: projeksiyon.map(p => p.yeni_tahmin),
+                        borderColor: '#3b82f6', 
+                        borderDash: [5, 5], tension: 0.4
+                    }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // --- 3. PIE CHART ---
+        // HATA DÜZELTME 2: JavaScript tarafında da NULL kontrolü yapıldı
+        const renkPaleti = segmentData.map(s => {
+            const seg = (s.customer_segment || '').toLowerCase(); // BOŞSA HATA VERME
+            if(seg.includes('sadik') || seg.includes('sadık')) return '#10b981'; 
+            if(seg.includes('vip')) return '#f59e0b'; 
+            if(seg.includes('potansiyel')) return '#8b5cf6'; 
+            return '#3b82f6'; // Diğerleri (Misafir) Mavi
+        });
+
+        new Chart(document.getElementById('pieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: segmentData.map(s => s.customer_segment || 'Misafir Müşteri'),
+                datasets: [{
+                    data: segmentData.map(s => s.toplam_ciro),
+                    backgroundColor: renkPaleti,
+                    borderWidth: 0
+                }]
+            },
+            options: { plugins: { legend: { position: 'right' } }, cutout: '70%', responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+</body>
+</html>

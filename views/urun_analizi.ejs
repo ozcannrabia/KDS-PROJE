@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ürün & Stok Analizi - SuperStep KDS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+           :root { --sidebar-bg: #5e0000ef; --bg-color: #f3f4f6; --sidebar-active: #bc0b0bff;
+            --accent-color: #ff0000ff; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); }
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); min-height: 100vh; position: fixed; top: 0; left: 0; padding-top: 20px; z-index: 1000; }
+        .sidebar-logo { height: 72px; padding: 0 20px; margin: 0; display: flex; align-items: center; justify-content: flex-start; border-bottom: 1px solid rgba(255,255,255,0.15); }
+       .sidebar-logo-img { width: 100%; max-width: 400px; height: auto; display: block; margin: 0; }
+        .sidebar-menu { list-style: none; padding: 0; }
+        .menu-header { font-size: 11px; text-transform: uppercase; color: #b77a7aff; padding: 10px 24px; font-weight: 600; margin-top: 10px; }
+        .menu-item a { display: flex; align-items: center; padding: 12px 24px; color: #e5e5e5ff;; text-decoration: none; font-size: 14px; transition: 0.2s; border-left: 3px solid transparent; }
+        .menu-item a:hover, .menu-item a.active { background-color: var(--sidebar-active); color: white; border-left-color: var(--accent-color); }
+        .menu-item i { width: 24px; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        
+        .white-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px #ff0000ff; margin-bottom: 24px; border: 1px solid #e5e7eb; }
+        .card-title-custom { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: #1f2937; display: flex; justify-content: space-between; align-items: center; }
+        
+        .table-custom th { background-color: #f9fafb; font-size: 12px; text-transform: uppercase; color: #6b7280; font-weight: 600; border-bottom: 1px solid #e5e7eb; padding: 12px 16px; }
+        .table-custom td { padding: 12px 16px; vertical-align: middle; border-bottom: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+        
+        .badge-stock { padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .stock-critical { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; } 
+        .stock-ok { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; } 
+        .stock-high { background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+
+        .progress-slim { height: 6px; border-radius: 3px; background-color: #f3f4f6; width: 100px; }
+        .progress-bar-custom { border-radius: 3px; }
+
+        input[type=range] { accent-color: #ff0000; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="/images/superstep_logo.png" class="sidebar-logo-img">
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-header">GENEL</li>
+            <li class="menu-item"><a href="/dashboard"><i class="fa-solid fa-house"></i> Genel Dashboard</a></li>
+            <li class="menu-item"><a href="/sube-performansi"><i class="fa-solid fa-store"></i> Şube Performansı</a></li>
+            <li class="menu-item"><a href="/musteri-segmentleri"><i class="fa-solid fa-users"></i> Müşteri Segmentleri</a></li>
+            <li class="menu-item"><a href="/urun-analizi"><i class="fa-solid fa-box-open"></i> Ürün ve Stok Analizi</a></li>
+            
+            <li class="menu-header">YÖNETİM</li>
+            <li class="menu-item"><a href="/kampanya-simulasyonu"><i class="fa-solid fa-wand-magic-sparkles"></i> Kampanya Simülasyonu</a></li>
+            <li class="menu-item"><a href="/satis-kayitlari"><i class="fa-solid fa-file-invoice"></i> Satış Kayıtları</a></li>
+            <li class="menu-item"><a href="/gelecek-tahmini"><i class="fa-solid fa-arrow-trend-up"></i> Gelecek Tahmini</a></li>
+
+            <li class="menu-header">AYARLAR</li>
+            <li class="menu-item"><a href="/kullanicilar"><i class="fa-solid fa-user-gear"></i> Kullanıcı Yönetimi</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Ürün ve Stok Analizi</h3>
+                <p class="text-muted m-0" style="font-size: 14px;">En çok satanlar, kritik stoklar ve kategori performansları</p>
+            </div>
+            <a href="/rapor-indir/stok" class="btn btn-dark btn-sm">
+                <i class="fa-solid fa-file-excel"></i> Excel Raporu İndir
+            </a>
+        </div>
+
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                <div class="white-card">
+                    <div class="card-title-custom">
+                        🔥 En Çok Satan 5 Ürün (Adet) 
+                        <span class="text-muted" style="font-size:10px"> | Ciro Liderleri için tıklayın (Opsiyonel)</span>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="bestSellerChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="white-card">
+                    <div class="card-title-custom">
+                        📂 Kategori Bazlı Ciro Dağılımı
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-md-5">
+                            <div style="height: 200px;">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <table class="table table-sm table-borderless m-0">
+                                <thead>
+                                    <tr style="border-bottom:1px solid #eee; font-size:12px; color:#999;">
+                                        <th>Kategori</th>
+                                        <th class="text-end">İşlem</th>
+                                        <th class="text-end">Ciro</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% kategoriData.forEach(cat => { %>
+                                        <tr>
+                                            <td class="fw-bold"><%= cat.category %></td>
+                                            <td class="text-end text-muted"><%= cat.islem_sayisi %></td>
+                                            <td class="text-end fw-bold"><%= Number(cat.toplam_ciro).toLocaleString('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}) %></td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                
+                <div class="white-card border-danger border-opacity-25 bg-danger bg-opacity-10">
+                    <div class="card-title-custom text-danger mb-2">
+                        <span>⚠️ Kritik Stok Alarmı (DOI)</span>
+                        <span class="badge bg-danger">ACİL</span>
+                    </div>
+                    <p class="text-dark opacity-75 small mb-3">
+                        Stok miktarı değil, <strong>tükenme süresi (Gün)</strong> baz alınmıştır.
+                    </p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-custom table-sm m-0 bg-white rounded shadow-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ürün</th>
+                                    <th class="text-center" title="Günlük Ortalama Satış">Hız/Gün</th>
+                                    <th class="text-center">Ömür</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if(kritikStok && kritikStok.length > 0) { %>
+                                    <% kritikStok.forEach(urun => { 
+                                        let kalanGun = urun.kalan_gun_omru || 0;
+                                        let hiz = parseFloat(urun.gunluk_hiz || 0).toFixed(1);
+                                        let stok = urun.current_stock;
+                                        
+                                        let badgeClass = kalanGun < 7 ? 'bg-danger' : 'bg-warning text-dark';
+                                    %>
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold text-dark" style="font-size:12px;"><%= urun.product_name %></div>
+                                                <div class="text-muted" style="font-size:10px;">Stok: <strong><%= stok %></strong></div>
+                                            </td>
+                                            <td class="text-center text-muted" style="font-size:12px;">
+                                                <%= hiz %>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge <%= badgeClass %>" style="font-size:10px; width: 60px;">
+                                                    <%= kalanGun %> GÜN
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr><td colspan="3" class="text-center py-3 text-muted">Tüm ürünlerin stok durumu güvenli (>45 Gün).</td></tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="white-card mt-4">
+                    <div class="card-title-custom text-secondary">
+                        <span>🐢 Hareketsiz (Ölü) Stok</span>
+                    </div>
+                    <p class="text-muted small mt-n3 mb-3">Yüksek stoklu ve yavaş dönen ürünler.</p>
+                    
+                    <ul class="list-group list-group-flush">
+                        <% oluStok.forEach(urun => { %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size:13px;"><%= urun.product_name %></div>
+                                    <small class="text-success fw-bold" style="font-size:10px;">Kampanya Önerilir</small>
+                                </div>
+                                <span class="badge bg-secondary bg-opacity-10 text-dark border"><%= urun.current_stock %> Adet</span>
+                            </li>
+                        <% }) %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="white-card" style="border-top: 5px solid #2563eb;">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-7">
+                            <h5 class="fw-bold text-dark m-0"><i class="fa-solid fa-chess-knight text-primary me-2"></i>Stratejik Stok Planlama</h5>
+                            <p class="text-muted small m-0 mt-1">
+                                Gelecek <strong>6 aylık</strong> projeksiyon. Büyüme hedefine göre stok yeterlilik analizi.
+                            </p>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="bg-light p-3 rounded border">
+                                <label class="fw-bold small d-flex justify-content-between mb-2">
+                                    Beklenen Büyüme Senaryosu
+                                    <span id="growthValue" class="badge bg-primary fs-6">%0</span>
+                                </label>
+                                <input type="range" class="form-range" id="growthSlider" min="-30" max="100" step="5" value="0">
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 10px;">
+                                    <span>Küçülme (-30%)</span>
+                                    <span>Stabil (0%)</span>
+                                    <span>Büyüme (+100%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light small text-uppercase">
+                                <tr>
+                                    <th>Ürün Adı</th>
+                                    <th class="text-center">Mevcut Stok</th>
+                                    <th class="text-center">Aylık Hız</th>
+                                    <th class="text-center bg-primary bg-opacity-10" style="border-left:2px solid #fff;">6 Aylık Tahmini İhtiyaç</th>
+                                    <th class="text-end">Stratejik Karar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="simulationBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- 1. SİMÜLASYON MANTIĞI ---
+        const simData = <%- typeof simulasyonData !== 'undefined' ? JSON.stringify(simulasyonData) : '[]' %>;
+        
+        const slider = document.getElementById('growthSlider');
+        const display = document.getElementById('growthValue');
+        const tbody = document.getElementById('simulationBody');
+
+        function updateSimulation() {
+            const growthRate = parseInt(slider.value); 
+            
+            display.innerText = (growthRate > 0 ? '+' : '') + growthRate + '%';
+            if(growthRate < 0) display.className = 'badge bg-danger fs-6';
+            else if(growthRate === 0) display.className = 'badge bg-secondary fs-6';
+            else display.className = 'badge bg-success fs-6';
+
+            let html = '';
+
+            simData.forEach(item => {
+                const aylikHiz = parseFloat(item.aylik_ortalama_satis || 0);
+                const mevcutStok = item.current_stock;
+
+                const tahmin = Math.ceil((aylikHiz * 6) * (1 + (growthRate / 100)));
+                const fark = mevcutStok - tahmin;
+                
+                let karar = '';
+
+                if (aylikHiz === 0) {
+                     karar = `<span class="badge bg-light text-dark border"><i class="fa-solid fa-minus"></i> Veri Yetersiz</span>`;
+                } else if (fark < 0) {
+                    const siparisLazim = Math.abs(fark);
+                    karar = `<span class="badge bg-danger p-2"><i class="fa-solid fa-cart-shopping me-1"></i> ${siparisLazim} Adet Sipariş Ver</span>`;
+                } else if (fark < 50) {
+                    karar = `<span class="badge bg-warning text-dark p-2"><i class="fa-solid fa-triangle-exclamation me-1"></i> Kritik Seviye (Kalan: ${fark})</span>`;
+                } else {
+                    karar = `<span class="badge bg-success p-2"><i class="fa-solid fa-check me-1"></i> Stok Yeterli</span>`;
+                }
+
+                html += `
+                    <tr>
+                        <td class="fw-bold">${item.product_name}</td>
+                        <td class="text-center">${mevcutStok}</td>
+                        <td class="text-center text-muted">${aylikHiz.toFixed(1)} / ay</td>
+                        <td class="text-center fw-bold fs-6 bg-primary bg-opacity-10">${tahmin} Adet</td>
+                        <td class="text-end">${karar}</td>
+                    </tr>
+                `;
+            });
+
+            if(simData.length === 0) {
+                html = '<tr><td colspan="5" class="text-center text-muted py-3">Analiz için yeterli veri bulunamadı.</td></tr>';
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        slider.addEventListener('input', updateSimulation);
+        updateSimulation();
+
+
+        // --- 2. GRAFİKLER ---
+        const bestSellers = <%- typeof bestSellers !== 'undefined' ? JSON.stringify(bestSellers) : '[]' %>;
+        new Chart(document.getElementById('bestSellerChart'), {
+            type: 'bar',
+            data: {
+                labels: bestSellers.map(p => p.product_name),
+                datasets: [{
+                    label: 'Satış Adedi',
+                    data: bestSellers.map(p => p.toplam_satis),
+                    backgroundColor: '#7cb536ff',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { x: { grid: { display: false } }, y: { grid: { display: false } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const catData = <%- typeof kategoriData !== 'undefined' ? JSON.stringify(kategoriData) : '[]' %>;
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: catData.map(c => c.category),
+                datasets: [{
+                    data: catData.map(c => c.toplam_ciro),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+</html>

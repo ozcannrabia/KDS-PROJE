@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperStep KDS - Stratejik Yönetim Paneli</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+
+        :root {
+            --sidebar-bg: #5e0000ef;
+            --sidebar-text: #e5e5e5ff;
+            --sidebar-active: #bc0b0bff;
+            --accent-color: #ff0000ff;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-dark: #1f2937;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 0;
+            z-index: 1000;
+        }
+        
+        .sidebar-logo {
+            height: 72px;
+            padding: 0 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .sidebar-logo-img {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            display: block;
+            margin: 0;
+        }
+        
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+
+        .menu-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #b77a7aff;
+            padding: 10px 24px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item a:hover, .menu-item a.active {
+            background-color: var(--sidebar-active);
+            color: white;
+            border-left-color: var(--accent-color);
+        }
+
+        .menu-item i { width: 24px; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: 260px;
+            padding: 24px 32px;
+        }
+
+        /* --- Header --- */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .user-profile {
+            background: white;
+            padding: 6px 15px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px #fd0000ff;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background-color: #cc0000ff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* --- Welcome Card --- */
+        .welcome-card {
+            background: #c50000ef;
+            color: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-card h2 { font-weight: 700; font-size: 24px; margin-bottom: 10px; }
+        .welcome-card p { opacity: 0.8; font-size: 14px; max-width: 600px; }
+        .badge-dark-custom { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 6px; font-size: 12px; margin-right: 5px; }
+
+        /* --- Filtreler --- */
+        .filter-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 2px #fd0000ff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-select-sm { border-radius: 6px; border-color: #e5e7eb; font-size: 13px; }
+
+        /* --- KPI Cards --- */
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            height: 100%;
+            border: 1px solid #f3f4f6;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px #fd0000ff;
+        }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px #fd0000ff; }
+        
+        .kpi-title { font-size: 11px; text-transform: uppercase; color: #6b7280; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .kpi-value { font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 5px; }
+        .kpi-trend { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .text-green { color: #059669; }  
+        .text-red { color: #dc2626; }
+
+        /* --- Table & Map --- */
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #f3f4f6;
+            height: 100%;
+            box-shadow: 0 1px 3px #fd0000ff;
+        }
+        .card-header-custom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title { font-size: 16px; font-weight: 700; color: #1f2937; }
+        
+        #map { border-radius: 12px; height: 350px; z-index: 1; }
+
+        .table-custom th { 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            color: #6b7280; 
+            font-weight: 600; 
+            border-bottom: 2px solid #f3f4f6; 
+            padding-bottom: 12px;
+        }
+        .table-custom td { 
+            font-size: 14px; 
+            padding: 12px 0; 
+            border-bottom: 1px solid #f9fafb;
+            color: #374151;
+            vertical-align: middle;
+        }
+
+        /* --- YENİ: AI Uyarı Kartı Stili (Tasarımı bozmadan ekledik) --- */
+        .ai-alert-card {
+            background: linear-gradient(to right, #fff, #fff5f5);
+            border-left: 4px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <img src="/images/superstep_logo.png" class="sidebar-logo-img">
+        </div>
+
+        <ul class="sidebar-menu">
+            <li class="menu-header">GENEL</li>
+            <li class="menu-item">
+                <a href="/dashboard" class="active"><i class="fa-solid fa-house"></i> Genel Dashboard</a>
+            </li>
+            <li class="menu-item">
+                <a href="/sube-performansi"><i class="fa-solid fa-store"></i> Şube Performansı</a>
+            </li>
+            <li class="menu-item">
+                <a href="/musteri-segmentleri"><i class="fa-solid fa-users"></i> Müşteri Segmentleri</a>
+            </li>
+            <li class="menu-item">
+                <a href="/urun-analizi">
+                    <i class="fa-solid fa-box-open"></i> Ürün ve Stok Analizi
+                </a>
+            </li>
+            
+            <li class="menu-header">YÖNETİM</li>
+            <li class="menu-item">
+                <a href="/kampanya-simulasyonu"><i class="fa-solid fa-wand-magic-sparkles"></i> Kampanya Simülasyonu</a>
+            </li>
+            <li class="menu-item">
+                <a href="/satis-kayitlari"><i class="fa-solid fa-file-invoice"></i> Satış Kayıtları</a>
+            </li>
+            <li class="menu-item">
+                <a href="/gelecek-tahmini"><i class="fa-solid fa-arrow-trend-up"></i> Gelecek Tahmini</a>
+            </li>
+
+            <li class="menu-header">AYARLAR</li>
+            <li class="menu-item">
+                <a href="/kullanicilar"><i class="fa-solid fa-user-gear"></i> Kullanıcı Yönetimi</a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        
+        <header class="top-header">
+            <div>
+                <h4 class="fw-bold m-0 text-dark">Stratejik Komuta Merkezi</h4>
+                <small class="text-muted">Gelecek 6 aylık projeksiyonlar ve risk haritası</small>
+            </div>
+            <div class="d-flex gap-3 align-items-center">
+                <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">Canlı Tahmin</span>
+                <div class="user-profile">
+                    <div class="user-avatar">MY</div>
+                    <div style="line-height: 1.2;">
+                        <div class="fw-bold" style="font-size: 13px;"><%= kullanici %></div>
+                        <div class="text-muted" style="font-size: 11px;">Yönetici</div>
+                    </div>
+                    <a href="/" class="ms-2 text-danger"><i class="fa-solid fa-right-from-bracket"></i></a>
+                </div>
+            </div>
+        </header>
+
+        <div class="welcome-card">
+            <div class="row align-items-center">
+                <div class="col-md-9">
+                    <h2>Hoş geldin, <%= kullanici.split(' ')[0] %> 👋</h2>
+                    <p class="mb-3">Sistem verilerini analiz ederek önümüzdeki 6 ay için şube performansı, riskler ve fırsatları derledik.</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge-dark-custom">📅 6 Aylık Projeksiyon</span>
+                        <span class="badge-dark-custom">🤖 AI Risk Tespiti</span>
+                        <span class="badge-dark-custom">📈 Gerçek Veri Akışı</span>
+                    </div>
+                </div>
+                <div class="col-md-3 text-end d-none d-md-block">
+                    <i class="fa-solid fa-chess-knight" style="font-size: 80px; opacity: 0.1;"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-card">
+            <form action="/dashboard" method="GET" class="d-flex gap-3 align-items-center w-100">
+                <span class="fw-bold text-dark" style="font-size: 14px;">Stratejik Görünüm:</span>
+                
+                <select name="sube" class="form-select form-select-sm" style="width: 180px;" onchange="this.form.submit()">
+                    <option value="hepsi">Tüm Şubeler</option>
+                    <% tumSubelerListesi.forEach(s => { %>
+                        <option value="<%= s.branch_name %>" <%= filtre.sube == s.branch_name ? 'selected' : '' %>>
+                            <%= s.branch_name %>
+                        </option>
+                    <% }) %>
+                </select>
+            </form>
+            <div class="text-muted ms-auto" style="font-size: 12px;">
+                Analiz Ufku: <span class="fw-bold text-dark"><br>Gelecek 6 Ay<br></span>
+                <% if(filtre.sube !== 'hepsi') { %>
+                    <i class="fa-solid fa-filter text-primary ms-1"></i>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="kpi-card border-primary border-opacity-25">
+                    <div class="kpi-title text-primary">6 AYLIK TAHMİNİ CİRO</div>
+                    <div class="kpi-value text-primary">
+                        <%= parseFloat(kpi.tahmini_ciro).toLocaleString('tr-TR', {style: 'currency', currency: 'TRY', maximumFractionDigits: 0}) %>
+                    </div>
+                    <div class="kpi-trend text-muted">
+                        <i class="fa-solid fa-calendar-days"></i> Gelecek 6 ay projeksiyonu
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-title">6 AYLIK TAHMİNİ HACİM</div>
+                    <div class="kpi-value"><%= kpi.tahmini_satis.toLocaleString('tr-TR', {maximumFractionDigits: 0}) %> Adet</div>
+                    <div class="kpi-trend text-muted">Beklenen satış adedi</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card <%= kpi.riskli_sube_orani > 20 ? 'border-danger border-opacity-50' : '' %>">
+                    <div class="kpi-title">RİSKLİ ŞUBE ORANI</div>
+                    <div class="kpi-value <%= kpi.riskli_sube_orani > 0 ? 'text-red' : 'text-green' %>">
+                        %<%= kpi.riskli_sube_orani.toFixed(1) %>
+                    </div>
+                    <div class="kpi-trend text-muted">Hedefin altında kalacaklar</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-title">SÜRDÜRÜLEBİLİRLİK SKORU</div>
+                    <div class="kpi-value text-green"><%= kpi.kampanya_skoru %>/100</div>
+                    <div class="kpi-trend text-muted">Müşteri sadakat gücü</div>
+                </div>
+            </div>
+        </div>
+
+        <% if(aiOneriler && aiOneriler.length > 0) { %>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="content-card ai-alert-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-white p-2 rounded-circle shadow-sm me-3 border">
+                            <i class="fa-solid fa-robot text-danger fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold m-0 text-danger">KDS Erken Uyarı Sistemi</h6>
+                            <small class="text-muted">Algoritmalar aşağıdaki stratejik riskleri tespit etti.</small>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <% aiOneriler.slice(0, 3).forEach(oneri => { %>
+                            <div class="col-md-4">
+                                <div class="bg-white p-3 rounded border shadow-sm h-100">
+                                    <div class="fw-bold text-dark mb-1" style="font-size:13px;">
+                                        <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i><%= oneri.baslik %>
+                                    </div>
+                                    <p class="m-0 text-muted" style="font-size:12px;"><%= oneri.mesaj %></p>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <div class="section-title">📍 Coğrafi Risk Haritası</div>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">Riskli</span>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success">Büyüme</span>
+                            <span class="badge bg-warning bg-opacity-10 text-dark border border-warning">Stabil</span>
+                        </div>
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <div class="section-title">Şube Tahmin Tablosu</div>
+                        <div class="text-muted" style="font-size: 11px;">6 Ay Gelecek Tahmini</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Şube</th>
+                                    <th class="text-end">6 Ay Tahmin</th>
+                                    <th class="text-end">Trend</th>
+                                    <th class="text-end">Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% subeData.slice(0, 6).forEach((sube, index) => { %>
+                                    <tr>
+                                        <td><%= index + 1 %></td>
+                                        <td class="fw-bold"><%= sube.sube_adi.replace('SuperStep – ', '') %></td>
+                                        <td class="text-end text-dark fw-bold">
+                                            <%= sube.tahmini_ciro.toLocaleString('tr-TR', {notation: "compact", compactDisplay: "short", style: 'currency', currency: 'TRY'}) %>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="<%= sube.trend > 0 ? 'text-green' : 'text-red' %> fw-bold" style="font-size:12px;">
+                                                <%= sube.trend > 0 ? '+' : '' %><%= sube.trend %>%
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="badge rounded-pill bg-<%= sube.renk %>-subtle text-<%= sube.renk %> border border-<%= sube.renk %>-subtle" style="font-size:10px;">
+                                                <%= sube.durum %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-1">
+            
+            <div class="col-lg-5">
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <div>
+                            <div class="section-title">📉 Ciro Trendi (Forecast)</div>
+                            <small class="text-muted">Geçmiş & Gelecek 6 Ay</small>
+                        </div>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <div>
+                            <div class="section-title">📊 Kategori Matrisi</div>
+                            <small class="text-muted">Kâr Marjı vs. Hacim</small>
+                        </div>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="matrixChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3">
+                <div class="content-card">
+                    <div class="card-header-custom">
+                        <div>
+                            <div class="section-title"> Müşteri Dağılımı</div>
+                            <small class="text-muted">Kampanya Etkileşimi</small>
+                        </div>
+                    </div>
+                    <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                    <div class="mt-2 text-center text-muted" style="font-size: 10px;">
+                        * İşlem hacmine göre dağılım
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        </div>
+        
+        <div class="text-center text-muted mt-5 mb-3" style="font-size: 12px;">
+            © 2025 SuperStep KDS Projesi v3.0 - Karar Destek Modülü
+        </div>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // ==========================================
+        // 1. GÜVENLİ VERİ ALIMI
+        // ==========================================
+        let subeVerileri = [], kampanyaVerileri = [], trendVeri = null, matrisVeri = [];
+
+        try {
+            subeVerileri = <%- typeof subeData !== 'undefined' ? JSON.stringify(subeData) : '[]' %>;
+            kampanyaVerileri = <%- typeof kampanyaData !== 'undefined' ? JSON.stringify(kampanyaData) : '[]' %>;
+            trendVeri = <%- typeof trendData !== 'undefined' ? JSON.stringify(trendData) : 'null' %>;
+            matrisVeri = <%- typeof matrisData !== 'undefined' ? JSON.stringify(matrisData) : '[]' %>;
+            
+            console.log("Trend Verisi:", trendVeri);
+            console.log("Matris Verisi:", matrisVeri);
+        } catch (e) {
+            console.error("Veri hatası:", e);
+        }
+
+        // ==========================================
+        // 2. TREND GRAFİĞİ (FORECAST)
+        // ==========================================
+        if (document.getElementById('trendChart') && trendVeri) {
+            // Etiketleri (X Ekseni) Birleştir
+            const labels = [
+                ...trendVeri.gecmis.map(d => d.ay), 
+                ...trendVeri.gelecek.map(d => d.ay)
+            ];
+
+            // Geçmiş Verisi: Gelecek kısmı null olmalı
+            const dataGecmis = [
+                ...trendVeri.gecmis.map(d => d.ciro), 
+                ...trendVeri.gelecek.map(() => null)
+            ];
+
+            // Gelecek Verisi: Geçmiş kısmı null olmalı
+            // Bağlantı kopuk olmasın diye geçmişin son değerini geleceğin başına ekliyoruz (görsel hile)
+            const sonGecmis = trendVeri.gecmis.length > 0 ? trendVeri.gecmis[trendVeri.gecmis.length-1].ciro : 0;
+            
+            const dataGelecek = Array(trendVeri.gecmis.length - 1).fill(null);
+            dataGelecek.push(sonGecmis); // Bağlantı noktası
+            trendVeri.gelecek.forEach(d => dataGelecek.push(d.ciro));
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Gerçekleşen',
+                            data: dataGecmis,
+                            borderColor: '#2563eb',
+                            backgroundColor: '#2563eb',
+                            tension: 0.3,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Tahmin (AI)',
+                            data: dataGelecek,
+                            borderColor: '#f59e0b',
+                            backgroundColor: '#f59e0b',
+                            borderDash: [5, 5], // Kesikli Çizgi
+                            tension: 0.3,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { 
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + Number(context.raw).toLocaleString('tr-TR') + ' ₺';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // 3. KATEGORİ MATRİSİ (BUBBLE CHART)
+        // ==========================================
+        if (document.getElementById('matrixChart') && matrisVeri.length > 0) {
+            new Chart(document.getElementById('matrixChart'), {
+                type: 'bubble',
+                data: {
+                    datasets: matrisVeri
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const v = context.raw;
+                                    return `${context.dataset.label} | Hacim: ${v.x}, Marj: %${v.y}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Satış Adedi (Hacim)' },
+                            grid: { color: '#f3f4f6' },
+                            beginAtZero: true
+                        },
+                        y: { 
+                            title: { display: true, text: 'Kâr Marjı (%)' },
+                            grid: { color: '#f3f4f6' },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        } else if(document.getElementById('matrixChart')) {
+             // Veri yoksa mesaj bas
+             console.warn("Matrix verisi boş!");
+        }
+
+        // ==========================================
+        // 4. KAMPANYA PASTASI
+        // ==========================================
+        if (document.getElementById('pieChart') && kampanyaVerileri.length > 0) {
+            new Chart(document.getElementById('pieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: kampanyaVerileri.map(d => d.kampanya_adi),
+                    datasets: [{
+                        data: kampanyaVerileri.map(d => d.islem_sayisi),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        // ==========================================
+        // 5. HARİTA (MAP)
+        // ==========================================
+        if (document.getElementById('map')) {
+            var map = L.map('map').setView([38.44, 27.15], 10);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap' }).addTo(map);
+
+            const icons = {
+                red: new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] }),
+                green: new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png', shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] }),
+                gold: new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png', shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] })
+            };
+
+            const koordinatBul = (isim) => {
+                const ad = isim.toLowerCase();
+                if(ad.includes('agora')) return [38.3954, 27.0530];
+                if(ad.includes('westpark')) return [38.4865, 27.1794];
+                if(ad.includes('bornova') || ad.includes('forum')) return [38.4499, 27.2104];
+                if(ad.includes('optimum')) return [38.3387, 27.1352];
+                if(ad.includes('hilltown')) return [38.4795, 27.0746];
+                if(ad.includes('karsiyaka') || ad.includes('cadde')) return [38.4573, 27.1165];
+                if(ad.includes('mavibahce') || ad.includes('mavi')) return [38.4739, 27.0743];
+                if(ad.includes('istinye')) return [38.3920, 27.0280];
+                return null;
+            };
+
+            subeVerileri.forEach(sube => {
+                let coord = sube.coords;
+                if (!coord || coord.length !== 2) coord = koordinatBul(sube.sube_adi);
+
+                if (coord) {
+                    let iconToUse = icons.gold;
+                    if(sube.renk === 'success') iconToUse = icons.green;
+                    if(sube.renk === 'danger') iconToUse = icons.red;
+
+                    L.marker(coord, { icon: iconToUse }).addTo(map)
+                        .bindPopup(`<strong style="color:#333">${sube.sube_adi.replace('SuperStep – ', '')}</strong><br>Tahmin: ${parseFloat(sube.tahmini_ciro).toLocaleString('tr-TR')} ₺`);
+                }
+            });
+        }
+
+
+        
+    </script>
+</body>
+</html>
